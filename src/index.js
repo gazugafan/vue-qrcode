@@ -3,6 +3,8 @@ import QRCode from 'qrcode/build/qrcode';
 export default {
   name: 'qrcode',
 
+  emits: ['ready'],
+
   props: {
     /**
      * The value of the QR code.
@@ -51,6 +53,9 @@ export default {
     generate() {
       const { options, tag } = this;
       const value = String(this.value);
+      const done = () => {
+        this.$emit(EVENT_READY, this.$el);
+      };
 
       if (tag === 'canvas') {
         QRCode.toCanvas(this.$el, value, options, (error) => {
@@ -58,6 +63,8 @@ export default {
           if (error) {
             throw error;
           }
+          
+          done();
         });
       } else if (tag === 'img') {
         QRCode.toDataURL(value, options, (error, url) => {
@@ -67,6 +74,7 @@ export default {
           }
 
           this.$el.src = url;
+          this.$el.onload = done;
         });
       } else {
         QRCode.toString(value, options, (error, string) => {
@@ -76,6 +84,7 @@ export default {
           }
 
           this.$el.innerHTML = string;
+          done();
         });
       }
     },
